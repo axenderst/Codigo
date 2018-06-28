@@ -1,0 +1,64 @@
+﻿@{
+    ViewBag.Title = "Administracion";
+}
+@*<script src="~/Scripts/SICE/NuevoMapa.js"></script>*@
+<script src="@Scripts.Url("~/bundles/NuevoMapa")"></script>
+<div class="row">
+    <div class="col-md-12">
+        <h2>Nuevo Mapa de Exportación</h2>
+    </div>
+</div>
+<hr />
+    <div class="row">
+        <div class="col-md-12" style="margin-bottom:25px;">
+            @Html.Label("lblArchivo", "Seleccione el Archivo a Configurar:")
+            <input id="flArchivo" type="file" style="max-width:1500px;" onchange="archivoCargado();" empty_msg="*Campo obligatorio" />
+        </div>
+        <hr />
+    </div>
+    <div class="row" style="display: table-row">
+        <div class="col-md-12 row-eq-height" style="display: table-cell">
+            <div class="col-md-3 col-sm-3 col-xs-3" style="margin-bottom:20px;">
+                @Html.Label("claveMapa", "Clave MAPA:")
+                @Html.TextBox("claveMapa", null, new { @class = "form-control", style = "box-sizing: border-box; width:100% !important", disabled = "disabled" })
+            </div>
+            @*<div class="col-md-12 col-sm-12 col-xs-12" style="margin-bottom:15px;">
+
+                </div>*@
+            <div class="col-md-3 col-sm-3 col-xs-3">
+                @Html.Label("nofila", "Fila De Inicio:")
+                @Html.TextBox("nofila", 1, new { @class = "form-control", style = "box-sizing: border-box; width:100% !important" })
+            </div>
+            <div class="col-md-2 col-sm-2 col-xs-2">
+                <br />
+                <input type="button" class="btn btn-primary" style="vertical-align:bottom;" value="Aplicar" onclick="SeleccionHoja();" />
+            </div>
+        </div>
+        <div class="col-md-12 row-eq-height" style="display: table-cell">
+            <div class="col-md-3" style="border-right: 1px solid black">
+                @*<div class="col-md-12 col-sm-12 col-xs-12">*@
+                @Html.Label("section", "Hoja de información:")
+                <select class="form-control" size="20" name="noHoja" id="ddlnoHoja" style="width:100%; display:table-row;  min-height:500px" onchange="SeleccionHoja();"></select>
+                @*</div>*@
+            </div>
+            <div class="col-md-9">
+                @*<div class="col-md-12 col-sm-12 col-xs-12">*@
+                @Html.Label("section", "Datos Excel:")
+                <br />
+                <div style="width:770px; min-height:500px" class="col-md-12 col-sm-12 col-xs-12 pre-scrollable" id="datosExcel">
+
+                    @*</div>*@
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="form-group"></div>
+    <br />
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12 text-right">
+            <input type="button" class="btn btn-default" value="Cancelar" onclick="GoToAdministracionIndex();" />
+            <input type="button" class="btn btn-primary" id="btnSubmit" onclick="enviarInformacion();" value="Guardar" />
+        </div>
+    </div>

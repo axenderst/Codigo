@@ -1,0 +1,57 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - My ASP.NET Application</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/bundles/Inicio")
+    
+</head>
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <img src="~/Images/logo-amgen.svg" width="102" height="30" class="navbar-Icon" />
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li class="dropdown">
+                        @Html.ActionLink("Home", "Inicio", "Home")
+                    </li>
+                    <li>@Html.ActionLink("Administración", "Index", "Administracion")</li>
+                    <li>@Html.ActionLink("Extracción", "Index", "Extraccion")</li>
+                    <li><a href="http://10.250.131.11/Asignaciones">Asignaciones</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="container body-content">
+        <div class="jumbotron">
+            @RenderBody()
+        </div>
+        <hr />
+        <footer>
+            <p>&copy; @DateTime.Now.Year - SECI - AMGEN</p>
+        </footer>
+    </div>
+    <div id="load_screen" class="divLoad" style="display: none;">
+        <div>
+            <img tyle="z-index:1050;" class="centerLoading" src="~/Images/engranajes.gif" width="170" height="170" />
+            <label class="lblLoading">Cargando...</label>
+        </div>
+    </div>
+       
+        @Scripts.Render("~/bundles/bootstrap")
+        @Scripts.Render("~/bundles/jquery")
+        @RenderSection("scripts", required: false)
+        @Scripts.Render("~/bundles/kendo")
+
+    </body>
+</html>

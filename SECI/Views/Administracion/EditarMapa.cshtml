@@ -1,0 +1,77 @@
+﻿@{
+    ViewBag.Title = "Administracion";
+}
+@*<script src="~/Scripts/SICE/EditarMapa.js"></script>*@
+@Scripts.Render("~/bundles/EditarMapa")
+<div class="row">
+    <div class="col-md-12">
+        <h2>Modificar Mapa de Exportación</h2>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        @Html.Label("lblArchivo", "Archivo Configurado:")
+    </div>
+</div>
+<div class="row" id="divArchivoConfigurado">
+    <div class="col-md-4">
+        @Html.TextBox("ArchivoConfigurado", (string)ViewBag.dsarchivo, new { @class = "form-control", style = "box-sizing: border-box; width:100% !important", @disabled = "disabled" })
+        <input id="flArchivo" type="file" style="max-width:1500px; display:none" onchange="archivoCargado();" empty_msg="*Campo obligatorio" />
+    </div>
+    <div class="col-md-2">
+        <input type="button" class="btn btn-primary" style="vertical-align:bottom;" value="Cambiar Archivo" onclick="CambiarArchivo();" />
+    </div>
+</div>
+
+<div class="row" id="divCambiaArchivo" style="display:none;">
+    <div class="col-md-4" style="margin-bottom:25px;">
+        @Html.Label("lblArchivo", "Seleccione el Archivo cargar:")
+        <input id="flArchivo2" type="file" style="max-width:1500px;" onchange = "ArchivoSeleccionado();" empty_msg="*Campo obligatorio" />
+    </div>
+</div>
+
+    <hr />
+    <div class="row" style="display: table-row">
+        <div class="col-md-12 row-eq-height" style="display: table-cell">
+            <div class="col-md-3 col-sm-3 col-xs-3" style="margin-bottom:20px;">
+                @Html.Label("claveMapa", "Clave MAPA:")
+                @Html.TextBox("claveMapa", (string)ViewBag.ClaveMapa, new { @class = "form-control", style = "box-sizing: border-box; width:100% !important", @disabled = "disabled" })
+            </div>
+            <div class="col-md-3 col-sm-3 col-xs-3">
+                @Html.Label("nofila", "Fila De Inicio:")
+                @Html.TextBox("nofila", (int)ViewBag.NoEncabezado, new { @class = "form-control", style = "box-sizing: border-box; width:100% !important" })
+            </div>
+            <div class="col-md-2 col-sm-2 col-xs-2">
+                <br />
+                <input type="button" class="btn btn-primary" style="vertical-align:bottom;" value="Aplicar" onclick="SeleccionHoja();" />
+            </div>
+        </div>
+        <div class="col-md-12 row-eq-height" style="display: table-cell">
+            <div class="col-md-3" style="border-right: 1px solid black">
+                @*<div class="col-md-12 col-sm-12 col-xs-12">*@
+                @Html.Label("section", "Hoja de información:")
+                <select class="form-control" size="20" name="noHoja" id="ddlnoHoja" style="width:100%; display:table-row;  min-height:500px" onchange="SeleccionHoja();"></select>
+                @*</div>*@
+            </div>
+            <div class="col-md-9">
+                @*<div class="col-md-12 col-sm-12 col-xs-12">*@
+                @Html.Label("section", "Datos Excel:")
+                <br />
+                <div style="width:770px; min-height:500px" class="col-md-12 col-sm-12 col-xs-12 pre-scrollable" id="datosExcel">
+
+                    @*</div>*@
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="form-group"></div>
+    <br />
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12 text-right">
+            <input type="button" class="btn btn-default" value="Cancelar" onclick="GoToAdministracionIndex();" />
+            <input type="button" class="btn btn-primary" id="btnSubmit" onclick="enviarInformacion();" value="Actualizar" />
+        </div>
+    </div>

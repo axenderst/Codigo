@@ -1,0 +1,248 @@
+﻿using SECI.Entities;
+using SECI.FactoryData.FactoryInstances;
+using SECI.Security;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
+using System.Transactions;
+
+namespace SECI.FactoryData.Repositories
+{
+    public class RepositorioMapas : BaseRepository
+    {
+        public List<Mapas> ConsultaMapas()
+        {
+            try
+            {
+                return FactoryMapa.GetList((DbDataReader)base._ProviderDB.GetDataReader("spGet_mostrarMapas", new DbParameter[]
+                  { }));
+
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public EncabezadoMapas ConsultaEncabezadoByllmapa(int llmapa)
+        {
+            try
+            {
+                return FactoryEncabezadoMapa.Get((DbDataReader)base._ProviderDB.GetDataReader("sp_GetEncabezadoMp", new DbParameter[]
+                  {
+                      DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@IdMapa", DbType.Int32, llmapa)
+                  }));
+
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public List<Mapas> ConsultaMapasByPrefijo(string ClaveMapa)
+        {
+            try
+            {
+                return FactoryMapaCompleto.GetList((DbDataReader)base._ProviderDB.GetDataReader("spGetMapasBySufijo", new DbParameter[]
+                  {
+                      DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@ClaveMapa", DbType.String, ClaveMapa)
+                  }));
+
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+
+        public List<Mapas> examinaMapa(string ClaveMapa)
+        {
+            try
+            {
+                return FactoryMapaCompleto.GetList((DbDataReader)base._ProviderDB.GetDataReader("spGetVerificarMapa", new DbParameter[]
+                  {
+                      DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@ClaveMapa", DbType.String, ClaveMapa)
+                  }));
+
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+
+        public List<Catalogo> ConsultaCatalog()
+        {
+            try
+            {
+                return FactoryCatalog.GetList((DbDataReader)base._ProviderDB.GetDataReader("spGet_MostrarCatTemp", new DbParameter[]
+                  { }));
+
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+
+        public List<Procesos> ConsultaProceso()
+        {
+            try
+            {
+                return FactoryProcesos.GetList((DbDataReader)base._ProviderDB.GetDataReader("spGet_MostrarProceso", new DbParameter[]
+                  { }));
+
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+
+        public int InsertaProceso(Procesos proceso)
+        {
+            try
+            {
+                DbParameter llprocesos = DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB,
+                    "@llproceso", DbType.Int32, DBNull.Value, -1, ParameterDirection.Output);
+                using (TransactionScope scope = new TransactionScope())
+                {
+                    base._ProviderDB.ExecuteNonQuery("spIns_proceso", new DbParameter[] {
+                            llprocesos,
+                            DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@boprocesomanual", DbType.Boolean, proceso.boprocesomanual),
+                            DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@dslog", DbType.String, proceso.dslog)
+                    });
+                    scope.Complete();
+                }
+                return Convert.ToInt32(llprocesos.Value);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+
+        public int UpProcesos(Procesos upproceso)
+        {
+            int resultado=0;
+            try
+            {
+                using (TransactionScope scope = new TransactionScope())
+                {
+                    base._ProviderDB.ExecuteNonQuery("spUpd_MvProce", new DbParameter[] 
+                    {
+                      DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@llproceso", DbType.Int32, upproceso.boprocesomanual),
+                      DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@dslog", DbType.String, upproceso.dslog)
+                     });
+                
+                   scope.Complete();
+                };
+                resultado = upproceso.llprocesos;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return resultado;
+        }
+
+        public int InsertaMapa(Mapas Mapas)
+        {
+            try
+            {
+                DbParameter ldMapa = DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB,
+                    "@IdCatMapa", DbType.Int32, DBNull.Value, -1, ParameterDirection.Output);
+                using (TransactionScope scope = new TransactionScope())
+                {
+                    base._ProviderDB.ExecuteNonQuery("spIns_Mapa", new DbParameter[] {
+                            ldMapa,
+                            DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@Sufijo", DbType.String, Mapas.ClaveMapa),
+                            DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@Hoja", DbType.Int32, Mapas.hoja),
+                            DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@FilaEncabezado", DbType.Int32, Mapas.filaEncabezado),
+                            DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@Col_Mayorista", DbType.Int32, Mapas.colMayorista),
+                            DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@Col_Presentacion", DbType.Int32, Mapas.colPresentacion),
+                            DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@Col_Fecha", DbType.Int32, Mapas.colFecha),
+                            DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@Col_Unidades", DbType.Int32, Mapas.colUnidades),
+                            DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@Col_Medico", DbType.Int32, Mapas.colMedico),
+                            DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@Col_Estado", DbType.Int32, Mapas.colEstado),
+                            DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@Col_Hospital", DbType.Int32, Mapas.colHospital),
+                            DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@Col_Sucursal", DbType.Int32, Mapas.colSucursal),
+                            DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@Col_Laboratorio", DbType.Int32, Mapas.colLaboratorio),
+                            DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@Col_Ciudad", DbType.Int32, Mapas.colCiudad),
+                            DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@Col_Colonia", DbType.Int32, Mapas.colColonia),
+                            DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@Col_Direccion", DbType.Int32, Mapas.colDireccion),
+                            DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@Col_CP", DbType.Int32, Mapas.colCP),
+                            DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@Col_Brick", DbType.Int32, Mapas.colBrick),
+
+                    });
+                    scope.Complete();
+                }
+                return Convert.ToInt32(ldMapa.Value);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+
+
+        public List<Mapas> BuscaMps(string ClaveMapa)
+        {
+            try
+            {
+                return FactoryMapaCompleto.GetList((DbDataReader)base._ProviderDB.GetDataReader("sp_buscarSufijo", new DbParameter[]
+                  {
+                      DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@ClaveMapa", DbType.String, ClaveMapa)
+                  }));
+
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+
+
+        public int ProcesoMapas(Procesos procMapa)
+        {
+            int resultado1 = 0;
+            int resultado2 = 0;
+            try
+            {
+                using (TransactionScope scope = new TransactionScope())
+                {
+                    base._ProviderDB.ExecuteNonQuery("spInsprocesoMapas", new DbParameter[]
+                    {
+                      DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@IdMapa", DbType.Int32, procMapa.IdMapa),
+                      DataFactory.GetObjParameter(GlobalConfiguration.ProviderDB, "@llproceso", DbType.String, procMapa.llprocesos)
+                     });
+
+                    scope.Complete();
+                };
+                resultado1 = procMapa.IdMapa;
+                resultado2 = procMapa.llprocesos;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return resultado1;
+            
+        }
+
+
+
+    }
+}
+
+
+

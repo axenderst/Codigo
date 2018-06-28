@@ -1,0 +1,64 @@
+﻿@{
+    ViewBag.Title = "Administracion";
+}
+<script src="~/Scripts/SICE/Administracion.js"></script>
+@*  <script src="~/Scripts/SICE/ConsultaMapas.js"></script>*@
+
+
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Mapas de Exportación</h2>
+        </div>
+    </div>
+    <hr />
+    <div class="row">
+        <div class="col-md-12">
+            @Html.Label("StudentName", "Clave MAPA:")
+        </div>
+        <div class="col-md-5 col-sm-5 col-xs-5">
+            @Html.TextBox("nomMapa", null, new { @class = "form-control", style = "box-sizing: border-box; width:100% !important " })
+        </div>
+        <div class="col-md-1 col-sm-1 col-xs-1">
+            <input type="button" class="btn btn-primary" value="Buscar" onclick ="GoToBuscar();"/>
+        </div>
+        <div class="col-md-6 col-sm-6 col-xs-6 text-right">
+            <input type="button" class="btn btn-primary " value="Nuevo" onclick="GoToNuevoMapa();"/>
+        </div>
+    </div>
+    <div class="form-group"></div>
+    <div class="row">
+        <hr />
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                Registros
+            </div>
+            <div class="panel-body"  style="font-size:12px;">
+                <div id="gvMapas">
+                    @*    <table class="table table-bordered table-responsive table-hover">
+                        <tr>
+                            <th># Mapa</th>
+                            <th>Nombre del Mapa</th>
+                            <th>Hoja</th>
+                            <th>Encabezado</th>
+                            <th>Fecha Creación</th>
+                            <th>Última Modificación</th>
+                        </tr>
+                                       @foreach (var d in Model)
+                    {
+                        <tr>
+                            <td>@d.EmployeeId</td>
+                            <td>@d.FirstName</td>
+                            <td>@d.LastName</td>
+                            <td>@d.Email</td>
+                            <td>@d.Salary</td>
+                            <td>@d.Company</td>
+                            <td>@d.Dept</td>
+
+                        </tr>
+            }
+                </table>*@
+
+            </div>
+            </div>
+        </div>
+    </div>

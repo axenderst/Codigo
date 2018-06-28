@@ -1,0 +1,252 @@
+﻿$(document).ready(function () {
+
+  /*  $("#btnBuscar").click(function () {
+        ObtenerRegistrosSeguimiento();
+        
+    });
+    */
+    
+    ObtenerRegistrosSeguimiento();
+   
+});
+
+function GoToNuevoMapa() {
+    top.location = "../Administracion/CrearNuevoMapa";
+}
+function GoToBuscar() {
+    ObtenerRegistrosSeguimiento();
+}
+
+function GoToAdministracionIndex() {
+    top.location = "../Administracion";
+}
+
+function archivoCargado() {
+    
+    //Obtenemos los datos del archivo para enviarlo al servidor
+    
+    var formData = new FormData();
+    formData.append("FileUpload", document.getElementById('flArchivo').files[0]);
+
+    $.ajax({
+        type: "POST",
+        url: "../Administracion/AnalisisPlantillaExcel",
+        data: formData,
+        cache: false,
+        contentType: false,
+        processData: false,
+        type: 'POST',
+        success: function (result) {
+            if (result.ProcesoExitoso == 1) {
+                var ddlHojas = $("#ddlnoHoja");
+                ddlHojas.html('');
+                $.each(result.Lista, function (id, option) {
+                    ddlHojas.append($('<option></option>').val(option.noHoja).html(option.Nombre));
+                });
+            } else {
+                MostrarMensajeError(result.Cadena);
+            }
+        }
+    });
+}
+
+    function ObtenerRegistrosSeguimiento() {
+        // MostrarCargando();
+        spinner();
+        $.ajax({
+            type: "POST",
+            url: "../Mapa/ListarMapas",
+            data: {
+            //    Mapa: $("#numMapa").val(),
+            //    Sufijo: $("#nomMapa").val(),
+            //    Hoja: $("#hojaBase").val(),
+            //    Encabezado: $("#filaEncabezado").val(),
+            //    FechaCreacion: $("#fechaCreacion").val(),
+            //    FechaModif: $("#fechaUltimaModif").val()
+
+                 Mapa: 1,
+                ClaveMapa: $("#nomMapa").val(),
+                Hoja: 1,
+                Encabezado:1,
+                FechaCreacion: $("#fechaCreacion").val(),
+                FechaModif: $("#fechaUltimaModif").val()
+
+            },
+            cache: false,
+            success: function (result) {
+                if (result.ProcesoExitoso == 1) {
+                    ArmaGridMapa(result.Lista);
+                    OcultarCargando();
+                }
+                else {
+                    //OcultarCargando();
+                    MostrarMensajeError('Error' + result.Mensaje);
+                    //MostrarMensajeError('Error' + result.Mensaje);
+                }
+            }
+        });
+    }
+
+    function ArmaGridMapa(Datos) {
+        $("#gvMapas").empty();
+        $("#gvMapas").kendoGrid({
+            dataSource: {
+                data: Datos,
+                schema: {
+                    model: {
+                        fields: {
+                            IdMapa: "IdMapa",
+                            Sufijo: "Sufijo",
+                            Hoja: "Hoja",
+                            FilaEncabezado: "FilaEncabezado",
+                            FechaCreacion: "FechaCreacion",
+                            Fecha_UltimaModif: "Fecha_UltimaModif"
+                        }
+                    }
+                },
+                pageSize: 10
+            },
+            selectable: "row",
+            scrollable: false,
+            sortable: false,
+            filterable: true,
+            pageable: {
+                refresh: false,
+                pageSizes: true,
+                input: true,
+                numeric: false
+            },
+            columns: [
+                {
+                    field: "mapaId",
+                    title: "IdMapa",
+                    width: "10%",
+                    hidden: true
+                },
+                {
+                    template: " #= TempleteEditarMapa(mapaId, ClaveMapa) #",
+                    title: "Clave Mapa",
+                    width: "25%"
+                },
+                {
+                    field: "hoja",
+                    title: "Hoja",
+                    width: "10%"
+                },
+                {
+                    field: "filaEncabezado",
+                    title: "Fila Encabezado",
+                    width: "10%"
+                },
+                {
+                    field: "fechaCreacion",
+                    title: "Fecha Creacion",
+                    width: "15%"
+                },
+                {
+                    field: "fechaUltimaModif",
+                    title: "Fecha Modificación",
+                    width: "15%"
+                }
+            ]
+        });
+
+    }
+
+
+    function SeleccionHoja() {
+        var x = document.getElementById("ddlnoHoja").value;
+        var y = document.getElementById("nofila").value;
+        
+        //alert('valor de fila = ' + y);
+        $.ajax({
+            type: "POST",
+            url: "../Administracion/CargarDatosExcel",
+            data: { "noHoja": x, "noFila": y },
+            cache: false,
+            success: function (result) {
+                if (result.ProcesoExitoso == 1) {
+                    var divCelldas = $("#datosExcel");
+                    divCelldas.html('');
+                    var codehtml = '<table class="ExcelTableXP" border="1"><tbody>[campos_nuevos]';
+                    var fila = 0;
+                    var filaanterior = 0;
+                    var primeraFila = 0;
+                    var headers = ' align="left" valign="bottom" class="heading" ';
+                    var opciones = '';
+                    var valorColumna = 0;
+                    $.each(result.Lista, function (id, option) {
+                        alert(id);
+                        fila = option.fila;
+                        //Cargamos los combos para elegir la columna.
+                        if (fila != filaanterior) {
+                            if (primeraFila == 1) {
+                                codehtml = codehtml + '</tr>';
+                            }
+                            codehtml = codehtml + '<tr>';
+                            if (fila == y) {
+                                opciones = opciones + '<th class="heading"></th>';
+                                codehtml = codehtml + '<td align="left" valign="bottom" class="heading">' + (fila) +'</td>';
+                            } else {
+                                codehtml = codehtml + '<td align="left" valign="bottom" class="heading">' + (fila) + '</td>';
+                            }
+
+                            
+                            primeraFila = 1;
+                        }
+                        if (fila == y) {
+                            opciones = opciones + '<th  class="heading"><select style="width:110px;" class="form-control" name="ddlnoHoja'+valorColumna+'" id="ddlnoHoja'+valorColumna+'"><option value="0">Seleccione</option><option value="1">Mayorista</option><option value="2">Presentacion</option><option value="3">Fecha</option><option value="4">Unidades</option><option value="5">Medico</option><option value="6">Estado</option><option value="7">Hospital</option><option value="8">Sucursal</option><option value="9">Laboratorio</option><option value="10">Ciudad</option><option value="11">Colonia</option><option value="12">Direccion</option><option value="13">CP</option><option value="14">Brick</option></select></th>';
+                            valorColumna = valorColumna + 1;
+                            codehtml = codehtml + '<th class="heading">' + option.valor + '</th>';
+                        } else {
+                            codehtml = codehtml + '<td>' + option.valor + '</td>';
+                        } 
+                            filaanterior = fila;
+                            });
+                    codehtml = codehtml + '</tr></tbody></table>';
+                    codehtml = codehtml.replace("[campos_nuevos]", opciones);
+                    
+                        //alert(codehtml);
+                        divCelldas.html(codehtml);
+                            } else {
+                    MostrarMensajeError(result.Cadena);
+                }
+            }
+        });
+
+    }
+
+
+
+
+    function enviarInformacion() {
+        //Realizamos el analisis de datos del mapa
+
+
+        $.ajax({
+            type: "POST",
+            url: "../Administracion/GuardarMapa",
+            data: formData,
+            cache: false,
+            contentType: false,
+            processData: false,
+            type: 'POST',
+            success: function (result) {
+                if (result.ProcesoExitoso == 1) {
+                    var ddlHojas = $("#ddlnoHoja");
+                    ddlHojas.html('');
+                    $.each(result.Lista, function (id, option) {
+                        ddlHojas.append($('<option></option>').val(option.noHoja).html(option.Nombre));
+                    });
+                } else {
+                    MostrarMensajeError(result.Cadena);
+                }
+            }
+        });
+    }
+
+
+    function TempleteEditarMapa(idMapa, ClaveMapa) {
+        var strTemplate = "<a onclick=GoToEditarMapa(" + idMapa + ")>" + ClaveMapa + "</a>";
+    return strTemplate;
+}

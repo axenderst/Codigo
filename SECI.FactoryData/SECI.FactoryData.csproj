@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{993076C9-9A7B-41F5-9D9F-49F44D472BDB}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SECI.FactoryData</RootNamespace>
+    <AssemblyName>SECI.FactoryData</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BaseRepository.cs" />
+    <Compile Include="BaseMethod.cs" />
+    <Compile Include="FactoryInstances\FactoryFTP.cs" />
+    <Compile Include="FactoryInstances\FactoryNewCatalog.cs" />
+    <Compile Include="FactoryInstances\FactoryUpProcess.cs" />
+    <Compile Include="FactoryInstances\FactoryProcesos.cs" />
+    <Compile Include="FactoryInstances\FactoryCatalog.cs" />
+    <Compile Include="FactoryInstances\FactoryMapa.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Repositories\RepositorioConsultas.cs" />
+    <Compile Include="Repositories\RepositorioErrores.cs" />
+    <Compile Include="Repositories\RepositorioMapas.cs" />
+    <Compile Include="Repositories\RepositorioProcesos.cs" />
+    <Compile Include="Repositories\RepositoriosCatalogo.cs" />
+    <Compile Include="Repositories\RepositoriosFTP.cs" />
+    <Compile Include="Repositories\Repositorios_CatalogoTem.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SECI.Entities\SECI.Entities.csproj">
+      <Project>{d683f905-eb88-406a-a40c-7c1310a6298e}</Project>
+      <Name>SECI.Entities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SECI.ProviderData\SECI.ProviderData.csproj">
+      <Project>{707c2c40-2488-4769-942b-ecdb6d8d506d}</Project>
+      <Name>SECI.ProviderData</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SECI.Security\SECI.Security.csproj">
+      <Project>{757091c1-ba6f-4695-b15a-7f9e933fa8dd}</Project>
+      <Name>SECI.Security</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

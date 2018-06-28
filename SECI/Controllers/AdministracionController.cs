@@ -1,0 +1,594 @@
+﻿using Microsoft.Office.Interop.Excel;
+using SECI.Entities;
+using SECI.Business;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Web.Hosting;
+using System.Web.Mvc;
+using OfficeOpenXml;
+using System.IO;
+//using SECI.ProviderData.DataFactory;
+
+namespace SECI.Controllers
+{
+    public class AdministracionController : Controller
+    {
+        #region Variables
+        private string rutaDocumento
+        {
+            get
+            {
+                return (string)Session["NombreDocumento"];
+            }
+            set
+            {
+                Session["NombreDocumento"] = value;
+            }
+        }
+
+        private Mapas mapaTrabajo
+        {
+            get
+            {
+                return (Mapas)Session["mapaTrabajo"];
+            }
+            set
+            {
+                Session["mapaTrabajo"] = value;
+            }
+        }
+
+
+        #endregion
+        // GET: Administracion
+        public ActionResult Index()
+        {
+            return View();
+        }
+
+        //vacio
+        public ActionResult CrearNuevoMapa()
+        {
+
+            return View(); // aquí creo que se tiene que enviar como parámetro la lista map
+        }
+
+        [HttpGet]
+        public ActionResult EditarMapa(int idMapa)
+        {
+            try
+            {
+                mapaTrabajo = new Mapas();
+                //Buscamos el los datos del mapa porid
+                mapaTrabajo = FacadeMapa.ObtenerMapasById(idMapa);
+
+                //Variables de Mapa
+                ViewBag.ClaveMapa = mapaTrabajo.ClaveMapa;
+                ViewBag.NoEncabezado = mapaTrabajo.filaEncabezado;
+                ViewBag.NoHoja = mapaTrabajo.hoja;
+                ViewBag.dsarchivo = mapaTrabajo.dsarchivo.Substring(36, mapaTrabajo.dsarchivo.Length-36);
+
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+            return View(); // aquí creo que se tiene que enviar como parámetro la lista map
+        }
+
+        //vacio
+        public ActionResult ConsultarMapa()
+        {
+            
+            return View(); // aquí creo que se tiene que enviar como parámetro la lista map
+        }
+
+
+        //Guarda el nuevo formato de extracción de excel
+        public ActionResult AnalisisPlantillaExcel(Boolean IsModificacion = false)
+        {
+            //Inicializamos variable 
+            rutaDocumento = "";
+
+            Resultado<HojasExcel> resultado = new Resultado<HojasExcel>();
+            try
+            {
+                resultado.Lista = new List<HojasExcel>();
+                //rutaDocumento = HostingEnvironment.MapPath("~/Temporal/" + Guid.NewGuid().ToString() + System.IO.Path.GetExtension(Request.Files[0].FileName));
+                if (!IsModificacion)
+                {
+                    //Validamos tipo de archivo
+                    if (!Request.Files[0].FileName.ToUpper().EndsWith(".XLS") && !Request.Files[0].FileName.ToUpper().EndsWith(".XLSX"))
+                    {
+                        throw new Exception("Seleccione un archivo correcto en formato Excel.");
+                    }
+
+                    //Cargamos el archivo seleccionado
+                    rutaDocumento = HostingEnvironment.MapPath("~/Temporal/" + Guid.NewGuid().ToString() + Request.Files[0].FileName);
+                    Request.Files[0].SaveAs(rutaDocumento);
+                    string[] columns = Request.Files[0].FileName.Split('_');
+
+                    resultado.Cadena = columns[0];
+                }
+                else
+                {
+                    resultado.Numero = mapaTrabajo.hoja;
+                    //Obtenemos el archivo que se encuentra configurado.
+                    rutaDocumento = HostingEnvironment.MapPath("~/Temporal/" + mapaTrabajo.dsarchivo);
+                }
+
+                //Inicializamos la aplicacion de Excel
+                Microsoft.Office.Interop.Excel.Application appExcel = new Microsoft.Office.Interop.Excel.Application();
+                // Asignamos propiedades del ejecucion
+                appExcel.Visible = false;
+                appExcel.ScreenUpdating = false;
+
+                Object filename = (Object)rutaDocumento;
+
+                //Abrimos el libro de trabajo
+                Workbook doc = appExcel.Workbooks.Open(rutaDocumento, Missing.Value, Missing.Value, Missing.Value, Missing.Value, Missing.Value,
+                    Missing.Value, Missing.Value, Missing.Value, Missing.Value, Missing.Value, Missing.Value, Missing.Value, Missing.Value, Missing.Value);
+                doc.Activate();
+
+                //Obtenemos las hojas del documento
+                String[] excelSheets = new String[doc.Worksheets.Count];
+                //int i = 0;
+                foreach (Microsoft.Office.Interop.Excel.Worksheet wSheet in doc.Worksheets)
+                {
+                    HojasExcel datosHoja = new HojasExcel();
+                    datosHoja.Nombre = wSheet.Name;
+                    datosHoja.noHoja = wSheet.Index;
+                    resultado.Lista.Add(datosHoja);
+                }
+
+                Microsoft.Office.Interop.Excel._Worksheet hojas = (Microsoft.Office.Interop.Excel._Worksheet)doc.Sheets[1];
+
+                hojas.get_Range("A1", Missing.Value);
+                Microsoft.Office.Interop.Excel.Range last = hojas.Cells.SpecialCells(Microsoft.Office.Interop.Excel.XlCellType.xlCellTypeLastCell);
+                // icrosoft.Office.Interop.Excel.Range last = hojas.Cells.SpecialCells(Microsoft.Office.Interop.Excel.XlCellType.cell);
+                Microsoft.Office.Interop.Excel.Range celdasDatos = hojas.get_Range("A1", last);
+                System.Array myvalues = (System.Array)celdasDatos.Cells.Value2;
+                List<CeldasExcel> datosExcel = new List<CeldasExcel>();
+
+                //foreach (Range dato in celdasDatos.Cells)
+                //{
+                //    CeldasExcel filaExel = new CeldasExcel();
+                //    filaExel.fila = dato.Row;
+                //    filaExel.columna = dato.Row;
+                //    filaExel.valor = Convert.ToString(dato.Value);
+                //}
+
+                int columnas = celdasDatos.Columns.Count;
+                int filas = celdasDatos.Rows.Count;
+
+                string[,] celdas = new string[columnas, filas];
+
+                //for(int x = 1; x<= myvalues.Length; x++)
+                //{
+                //    myvalues.GetValue()
+                //}
+
+                //Guardamos y cerramos la aplicacion
+                object paramMissing = Type.Missing;
+                if (doc != null)
+                {
+                    doc.Close(false, paramMissing, paramMissing);
+                    doc = null;
+                }
+
+                // Quit Excel and release the ApplicationClass object.
+                if (appExcel != null)
+                {
+                    appExcel.Quit();
+                    appExcel = null;
+                }
+
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+
+                
+                resultado.ProcesoExitoso = 1;
+            }
+            catch(Exception ex)
+            {
+                resultado.ProcesoExitoso = 0;
+                resultado.Cadena = ex.Message;
+            }
+
+            return Json(resultado, JsonRequestBehavior.DenyGet);
+        }
+
+        //Carga los datos de excel seleccionando nuevo mapa y buscar desde carpeta para ingresarlo a la bd como NUEVO MAPA 
+        public ActionResult CargarDatosExcel(int noHoja, int noFila)
+        {
+            
+            
+            Resultado<CeldasExcel> resultado = new Resultado<CeldasExcel>();
+            try
+            {
+                if(rutaDocumento == "")
+                {
+                    throw new Exception("Seleccione un archivo correcto en formato Excel");
+                }
+                resultado.Lista = new List<CeldasExcel>();
+                //Inicializamos la aplicacion de Excel
+                Microsoft.Office.Interop.Excel.Application appExcel = new Microsoft.Office.Interop.Excel.Application();
+                // Asignamos propiedades del ejecucion
+                appExcel.Visible = false;
+                appExcel.ScreenUpdating = false;
+
+                Object filename = (Object)rutaDocumento;
+
+                //Abrimos el libro de trabajo
+                Workbook doc = appExcel.Workbooks.Open(rutaDocumento, Missing.Value, Missing.Value, Missing.Value, Missing.Value, Missing.Value,
+                    Missing.Value, Missing.Value, Missing.Value, Missing.Value, Missing.Value, Missing.Value, Missing.Value, Missing.Value, Missing.Value);
+                doc.Activate();
+
+                Microsoft.Office.Interop.Excel._Worksheet hojaActiva = (Microsoft.Office.Interop.Excel._Worksheet)doc.Sheets[noHoja];
+
+                hojaActiva.get_Range("A"+ noFila, Missing.Value);
+                Microsoft.Office.Interop.Excel.Range last = hojaActiva.Cells.SpecialCells(Microsoft.Office.Interop.Excel.XlCellType.xlCellTypeLastCell);
+                Microsoft.Office.Interop.Excel.Range rangeFin = hojaActiva.Cells[last.Row, (last.Column > 99 ? 100 : last.Column)];
+                Microsoft.Office.Interop.Excel.Range celdasDatos = hojaActiva.get_Range("A" + noFila, rangeFin);
+                int inicio = 0;
+                int filaAnterior = 0;
+                int topFilas = 0;
+                foreach (Range dato in celdasDatos.Cells)
+                {
+                    CeldasExcel filaExel = new CeldasExcel();
+                    filaExel.fila = dato.Row;
+                    filaExel.columna = dato.Column;
+                    filaExel.valor = Convert.ToString(dato.Value);
+
+                    
+                    if(inicio == 0)
+                    {
+                        filaAnterior = filaExel.fila;
+                        inicio = 1;
+                    }
+                    if(filaAnterior != filaExel.fila)
+                    {
+                        topFilas = topFilas + 1;
+                        filaAnterior = filaExel.fila;
+                    }
+                    if(topFilas > 30)
+                    {
+                        break;
+                    }
+                    resultado.Lista.Add(filaExel);
+                }
+
+                //Guardamos y cerramos la aplicacion
+                object paramMissing = Type.Missing;
+                if (doc != null)
+                {
+                    doc.Close(false, paramMissing, paramMissing);
+                    doc = null;
+                }
+
+                // Quit Excel and release the ApplicationClass object.
+                if (appExcel != null)
+                {
+                    appExcel.Quit();
+                    appExcel = null;
+                }
+
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                resultado.ProcesoExitoso = 1;
+            }
+            catch (Exception ex)
+            {
+                resultado.ProcesoExitoso = 0;
+                resultado.Cadena = ex.Message;
+            }
+
+            return Json(resultado, JsonRequestBehavior.DenyGet);
+        }
+
+
+        //Genera un "NUEVO MAPA" de exportación al seleccionar Nuevo en administración y realizar la busqueda del archivo excel seleccionando las columnas y damos guardar en la BD
+        public ActionResult GuardarMapa(string DatosExcel,string ClaveMapa, int NoFilaHeaders, int hoja, Boolean IsNuevo)
+        {
+          
+            Resultado<string> resultado = new Resultado<string>();
+            
+            try
+            {
+                //Validamos la clave del mapa
+                if (IsNuevo)
+                {
+                    List<Mapas> mapasRegistrados = FacadeMapa.VerificarMapa(ClaveMapa);
+                    if (mapasRegistrados.Count > 0)
+                    {
+                        throw new Exception("El Mapa ya se encuentra registrado.");
+                    }
+                }
+                //insertar splite
+                string[] columns = DatosExcel.Split('_');
+                if (columns.Length <2)
+                {
+                    resultado.ProcesoExitoso = 0;
+                    resultado.Mensaje = "Debe Seleccionar por lo menos 2 columnas de mapeo en Excel.";
+                    return Json(resultado, JsonRequestBehavior.DenyGet);
+                }           
+                else
+                {
+                Mapas nuevoMapa = new Mapas();
+                nuevoMapa.ClaveMapa = ClaveMapa;
+                nuevoMapa.hoja = hoja;
+                nuevoMapa.filaEncabezado = NoFilaHeaders;
+
+                // Inicializamos EncabezadoMapa para guardar el nombre delencabezado
+                EncabezadoMapas nombreColumna = new EncabezadoMapas();
+
+                //Iniciamos la carga de documento para obtener los nombres de de los headers.
+                //Creamos una nueva instancia con el archivo que utilizaremos como plantilla.
+                ExcelPackage pantillaExcel = new ExcelPackage(new FileInfo(rutaDocumento));
+
+                //Creamos un objecto tipo ExcelWorksheet que sera en la que vamos a trabajar.
+                ExcelWorksheet hojaEncabezado = pantillaExcel.Workbook.Worksheets[hoja];
+
+                    String[] columnasExcel = DatosExcel.Split('_');
+                foreach(string campoColumna in columnasExcel)
+                {
+                    String[] datosColumna = campoColumna.Split(',');
+                    int numeroColumna = Convert.ToInt32(datosColumna[0]);
+                    int valorColumna = Convert.ToInt32(datosColumna[1]);
+
+                    String textoColumna = "";
+                    if (valorColumna == 1)
+                    {
+                            if (nuevoMapa.colMayorista == 0)
+                            {
+                                nuevoMapa.colMayorista = numeroColumna;
+                                nombreColumna.colMayorista = hojaEncabezado.Cells[NoFilaHeaders, numeroColumna].Text.ToUpper();
+                            }
+                            else
+                            {
+                                textoColumna = "Mayorista";
+                            }
+                    }
+
+                    if (valorColumna == 2)
+                    {
+                            if (nuevoMapa.colPresentacion == 0)
+                            {
+                                nuevoMapa.colPresentacion = numeroColumna;
+                                nombreColumna.colPresentacion = hojaEncabezado.Cells[NoFilaHeaders, numeroColumna].Text.ToUpper();
+                            }
+                            else
+                            {
+                                textoColumna = "Presentacion";
+                            }
+                    }
+
+                    if (valorColumna == 3)
+                    {
+                            if (nuevoMapa.colFecha == 0)
+                            {
+                                nuevoMapa.colFecha = numeroColumna;
+                                nombreColumna.colFecha = hojaEncabezado.Cells[NoFilaHeaders, numeroColumna].Text.ToUpper();
+                            }
+                            else
+                            {
+                                textoColumna = "Fecha";
+                            }
+                    }
+
+                    if (valorColumna == 4)
+                    {
+                            if (nuevoMapa.colUnidades == 0)
+                            {
+                                nuevoMapa.colUnidades = numeroColumna;
+                                nombreColumna.colUnidades = hojaEncabezado.Cells[NoFilaHeaders, numeroColumna].Text.ToUpper();
+                            }
+                            else
+                            {
+                                textoColumna = "Unidades";
+                            }
+                    }
+
+                    if (valorColumna == 5)
+                    {
+                            if (nuevoMapa.colMedico == 0)
+                            {
+                                nuevoMapa.colMedico = numeroColumna;
+                                nombreColumna.colMedico = hojaEncabezado.Cells[NoFilaHeaders, numeroColumna].Text.ToUpper();
+                            }
+                            else
+                            {
+                                textoColumna = "Medico";
+                            }
+                    }
+
+                    if (valorColumna == 6)
+                    {
+                            if (nuevoMapa.colEstado == 0)
+                            {
+                                nuevoMapa.colEstado = numeroColumna;
+                                nombreColumna.colEstado = hojaEncabezado.Cells[NoFilaHeaders, numeroColumna].Text.ToUpper();
+                            }
+                            else
+                            {
+                                textoColumna = "Estado";
+                            }
+                    }
+
+                    if (valorColumna == 7)
+                    {
+                            if (nuevoMapa.colHospital == 0)
+                            {
+                                nuevoMapa.colHospital = numeroColumna;
+                                nombreColumna.colHospital = hojaEncabezado.Cells[NoFilaHeaders, numeroColumna].Text.ToUpper();
+                            }
+                            else
+                            {
+                                textoColumna = "Hospital";
+                            }
+                    }
+
+                    if (valorColumna == 8)
+                    {
+                            if (nuevoMapa.colSucursal == 0)
+                            {
+                                nuevoMapa.colSucursal = numeroColumna;
+                                nombreColumna.colSucursal = hojaEncabezado.Cells[NoFilaHeaders, numeroColumna].Text.ToUpper();
+                            }
+                            else
+                            {
+                                textoColumna = "Sucursal";
+                            }
+                    }
+
+                    if (valorColumna == 9)
+                    {
+                            if (nuevoMapa.colLaboratorio == 0)
+                            {
+                                nuevoMapa.colLaboratorio = numeroColumna;
+                                nombreColumna.colLaboratorio = hojaEncabezado.Cells[NoFilaHeaders, numeroColumna].Text.ToUpper();
+                            }
+                            else
+                            {
+                                textoColumna = "Laboratorio";
+                            }
+                    }
+
+                    if (valorColumna == 10)
+                    {
+                            if (nuevoMapa.colCiudad == 0)
+                            {
+                                nuevoMapa.colCiudad = numeroColumna;
+                                nombreColumna.colCiudad = hojaEncabezado.Cells[NoFilaHeaders, numeroColumna].Text.ToUpper();
+                            }
+                            else
+                            {
+                                textoColumna = "Ciudad";
+                            }
+                    }
+
+                    if (valorColumna == 11)
+                    {
+                            if (nuevoMapa.colColonia == 0)
+                            {
+                                nuevoMapa.colColonia = numeroColumna;
+                                nombreColumna.colColonia = hojaEncabezado.Cells[NoFilaHeaders, numeroColumna].Text.ToUpper();
+                            }
+                            else
+                            {
+                                textoColumna = "Colonia";
+                            }
+                    }
+
+                    if (valorColumna == 12)
+                    {
+                            if (nuevoMapa.colDireccion == 0)
+                            {
+                                nuevoMapa.colDireccion = numeroColumna;
+                                nombreColumna.colDireccion = hojaEncabezado.Cells[NoFilaHeaders, numeroColumna].Text.ToUpper();
+                            }
+                            else
+                            {
+                                textoColumna = "Direccion";
+                            }
+                    }
+
+                    if (valorColumna == 13)
+                    {
+                            if (nuevoMapa.colCP == 0)
+                            {
+                                nuevoMapa.colCP = numeroColumna;
+                                nombreColumna.colCP = hojaEncabezado.Cells[NoFilaHeaders, numeroColumna].Text.ToUpper();
+                            }
+                            else
+                            {
+                                textoColumna = "CP";
+                            }
+                    }
+
+                    if (valorColumna == 14)
+                    {
+                            if (nuevoMapa.colBrick == 0)
+                            {
+                                nuevoMapa.colBrick = numeroColumna;
+                                nombreColumna.colBrick = hojaEncabezado.Cells[NoFilaHeaders, numeroColumna].Text.ToUpper();
+                            }
+                            else
+                            {
+                                textoColumna = "Brick";
+                            }
+                    }
+                    
+                    if (textoColumna != String.Empty)
+                    {
+                        throw new Exception("El campo \"" + textoColumna + "\" ya fue proporcionado en otra columna del Excel.");
+                    }
+                }
+
+                    if (nuevoMapa.colUnidades == 0)
+                    {
+                        resultado.Mensaje = "No se ha seleccionado la columna de Unidades.";
+                    }
+                    else
+                    {
+                        //Obtenemos el nombre del documento
+                        nuevoMapa.dsarchivo = System.IO.Path.GetFileName(rutaDocumento);
+                        if (IsNuevo == true){ 
+                        int idMapa = FacadeMapa.InsertaMapa(nuevoMapa, nombreColumna);
+                        }
+                        else
+                        {
+                            nuevoMapa.mapaId = mapaTrabajo.mapaId;
+                            int idMapa = FacadeMapa.modificaMapa(nuevoMapa, nombreColumna);
+                        }
+                        resultado.ProcesoExitoso = 1;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                resultado.ProcesoExitoso = 0;
+                resultado.Mensaje = ex.Message;
+            }
+            return Json(resultado, JsonRequestBehavior.DenyGet);
+        }
+
+        public ActionResult CargarConfiguracion()
+        {
+            Resultado<Mapas> resultado = new Resultado<Mapas>();
+            try
+            {
+                resultado.Objeto = mapaTrabajo;
+                resultado.ProcesoExitoso = 1;
+            }
+            catch (Exception ex)
+            {
+                resultado.ProcesoExitoso = 0;
+                resultado.Mensaje = ex.Message;
+            }
+            return Json(resultado, JsonRequestBehavior.DenyGet);
+        }
+
+        public ActionResult BorrarMapa(int idMapa)
+        {
+            Resultado<int> statusBorrado = new Resultado<int>();
+            try
+            {
+                FacadeMapa.BorraMapaByIdMapa(idMapa);
+                statusBorrado.ProcesoExitoso = 1;
+            }
+            catch(Exception ex)
+            {
+                statusBorrado.ProcesoExitoso = 2;
+                statusBorrado.Mensaje = ex.Message;
+            }
+            return Json(statusBorrado, JsonRequestBehavior.DenyGet);
+        }
+
+        }
+}
